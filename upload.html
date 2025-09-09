@@ -580,7 +580,7 @@
 
     modalTitle.textContent = title;
 
-    const hlsUrl = `${API_URL}/videos/${videoId}/master.m3u8`;
+    const hlsUrl = `${API_URL}/streams/${videoId}/master.m3u8`;
 
     if (Hls.isSupported()) {
       const hls = new Hls();

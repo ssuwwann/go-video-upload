@@ -35,9 +35,9 @@ type Resolution struct {
 }
 
 var resolutions = []Resolution{
-	{Height: 480, VideoBitrate: "1500k", AudioBitrate: "96k", MaxRate: "2250k", BufSize: "3000k"},
-	{Height: 720, VideoBitrate: "3000k", AudioBitrate: "128k", MaxRate: "4500k", BufSize: "6000k"},
-	{Height: 1080, VideoBitrate: "5000k", AudioBitrate: "192k", MaxRate: "7500k", BufSize: "10000k"},
+	{Height: 480, VideoBitrate: "600k", AudioBitrate: "96k", MaxRate: "900k", BufSize: "1200k"},
+	{Height: 720, VideoBitrate: "1000k", AudioBitrate: "128k", MaxRate: "1500k", BufSize: "2000k"},
+	{Height: 1080, VideoBitrate: "1800k", AudioBitrate: "128k", MaxRate: "2700k", BufSize: "3600k"},
 }
 
 func (transcoder *Transcoder) TranscodeVideo(context context.Context, videoID string) error {
