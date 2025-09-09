@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Upload Test</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 50px auto;
+          padding: 20px;
+          background: #f5f5f5;
+      }
+
+      .container {
+          background: white;
+          padding: 30px;
+          border-radius: 10px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+          color: #333;
+          margin-bottom: 30px;
+      }
+
+      .upload-area {
+          border: 2px dashed #ccc;
+          border-radius: 8px;
+          padding: 40px;
+          text-align: center;
+          margin-bottom: 20px;
+          transition: all 0.3s;
+      }
+
+      .upload-area.dragover {
+          border-color: #4CAF50;
+          background: #f0f8f0;
+      }
+
+      input[type="file"] {
+          display: none;
+      }
+
+      .file-label {
+          display: inline-block;
+          padding: 12px 24px;
+          background: #4CAF50;
+          color: white;
+          border-radius: 5px;
+          cursor: pointer;
+          transition: background 0.3s;
+      }
+
+      .file-label:hover {
+          background: #45a049;
+      }
+
+      .file-info {
+          margin: 20px 0;
+          padding: 15px;
+          background: #f9f9f9;
+          border-radius: 5px;
+          display: none;
+      }
+
+      .upload-btn {
+          width: 100%;
+          padding: 15px;
+          background: #2196F3;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          font-size: 16px;
+          cursor: pointer;
+          transition: background 0.3s;
+          margin-top: 20px;
+      }
+
+      .upload-btn:hover {
+          background: #1976D2;
+      }
+
+      .upload-btn:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+      }
+
+      .progress {
+          display: none;
+          margin-top: 20px;
+      }
+
+      .progress-bar {
+          width: 100%;
+          height: 30px;
+          background: #f0f0f0;
+          border-radius: 15px;
+          overflow: hidden;
+      }
+
+      .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #4CAF50, #45a049);
+          width: 0%;
+          transition: width 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+      }
+
+      .result {
+          margin-top: 20px;
+          padding: 20px;
+          border-radius: 5px;
+          display: none;
+      }
+
+      .result.success {
+          background: #d4edda;
+          border: 1px solid #c3e6cb;
+          color: #155724;
+      }
+
+      .result.error {
+          background: #f8d7da;
+          border: 1px solid #f5c6cb;
+          color: #721c24;
+      }
+
+      .video-list {
+          margin-top: 30px;
+      }
+
+      .video-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 20px;
+          margin-top: 15px;
+      }
+
+      .video-item {
+          background: white;
+          border-radius: 10px;
+          overflow: hidden;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          transition: transform 0.3s;
+      }
+
+      .video-item:hover {
+          transform: translateY(-5px);
+      }
+
+      .video-thumbnail {
+          width: 100%;
+          height: 200px;
+          background: #f0f0f0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          overflow: hidden;
+      }
+
+      .video-thumbnail img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+      }
+
+      .video-thumbnail .placeholder {
+          color: #888;
+          font-size: 48px;
+      }
+
+      .video-info {
+          padding: 15px;
+      }
+
+      .video-title {
+          font-weight: bold;
+          margin-bottom: 5px;
+          word-wrap: break-word;
+      }
+
+      .video-meta {
+          font-size: 12px;
+          color: #666;
+          margin-bottom: 10px;
+      }
+
+      .video-status {
+          display: inline-block;
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 11px;
+          font-weight: bold;
+      }
+
+      .status-queued {
+          background: #fff3cd;
+          color: #856404;
+      }
+
+      .status-processing {
+          background: #d1ecf1;
+          color: #0c5460;
+      }
+
+      .status-ready {
+          background: #d4edda;
+          color: #155724;
+      }
+
+      .status-failed {
+          background: #f8d7da;
+          color: #721c24;
+      }
+
+      .video-actions {
+          margin-top: 10px;
+      }
+
+      .btn-small {
+          display: inline-block;
+          padding: 5px 10px;
+          margin-right: 5px;
+          background: #4CAF50;
+          color: white;
+          text-decoration: none;
+          border-radius: 3px;
+          font-size: 12px;
+          transition: background 0.3s;
+      }
+
+      .btn-small:hover {
+          background: #45a049;
+          text-decoration: none;
+      }
+
+      .btn-small.blue {
+          background: #2196F3;
+      }
+
+      .btn-small.blue:hover {
+          background: #1976D2;
+      }
+
+      .modal {
+          display: none;
+          position: fixed;
+          z-index: 1000;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.8);
+      }
+
+      .modal-content {
+          background-color: #fefefe;
+          margin: 5% auto;
+          padding: 0;
+          border: none;
+          width: 90%;
+          max-width: 800px;
+          border-radius: 10px;
+          overflow: hidden;
+      }
+
+      .modal-header {
+          padding: 15px 20px;
+          background: #333;
+          color: white;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+      }
+
+      .close {
+          color: #aaa;
+          font-size: 28px;
+          font-weight: bold;
+          cursor: pointer;
+      }
+
+      .close:hover {
+          color: white;
+      }
+
+      .modal-body {
+          padding: 20px;
+      }
+
+      #videoPlayer {
+          width: 100%;
+          height: 400px;
+          background: #000;
+      }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🎬 Video Upload Test</h1>
+
+  <div class="upload-area" id="uploadArea">
+    <p>📁 파일을 드래그하거나 클릭하여 선택하세요</p>
+    <label for="fileInput" class="file-label">파일 선택</label>
+    <input type="file" id="fileInput" accept="video/*">
+  </div>
+
+  <div class="file-info" id="fileInfo">
+    <strong>선택된 파일:</strong> <span id="fileName"></span><br>
+    <strong>크기:</strong> <span id="fileSize"></span>
+  </div>
+
+  <button class="upload-btn" id="uploadBtn" disabled>업로드</button>
+
+  <div class="progress" id="progress">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill">0%</div>
+    </div>
+  </div>
+
+  <div class="result" id="result"></div>
+
+  <div class="video-list" id="videoList">
+    <h3>📹 업로드된 비디오</h3>
+    <div class="video-grid" id="videos"></div>
+  </div>
+</div>
+
+<!-- Video Player Modal -->
+<div id="videoModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">비디오 재생</h3>
+      <span class="close" onclick="closeModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <video id="videoPlayer" controls>
+        <source id="videoSource" src="" type="application/x-mpegURL">
+        Your browser does not support HLS playback.
+      </video>
+    </div>
+  </div>
+</div>
+
+<!-- HLS.js for video playback -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+  const API_URL = 'http://localhost:1323';
+
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('fileInput');
+  const fileInfo = document.getElementById('fileInfo');
+  const fileName = document.getElementById('fileName');
+  const fileSize = document.getElementById('fileSize');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const progress = document.getElementById('progress');
+  const progressFill = document.getElementById('progressFill');
+  const result = document.getElementById('result');
+  const videoList = document.getElementById('videos');
+
+  let selectedFile = null;
+
+  // Drag & Drop
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+  });
+
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  });
+
+  // File input change
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleFileSelect(e.target.files[0]);
+    }
+  });
+
+  // Handle file selection
+  function handleFileSelect(file) {
+    selectedFile = file;
+    fileName.textContent = file.name;
+    fileSize.textContent = formatFileSize(file.size);
+    fileInfo.style.display = 'block';
+    uploadBtn.disabled = false;
+    result.style.display = 'none';
+  }
+
+  // Format file size
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  // Upload button click
+  uploadBtn.addEventListener('click', uploadFile);
+
+  // Upload file
+  async function uploadFile() {
+    if (!selectedFile) return;
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    uploadBtn.disabled = true;
+    progress.style.display = 'block';
+    result.style.display = 'none';
+
+    try {
+      const xhr = new XMLHttpRequest();
+
+      // Progress tracking
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percentComplete = (e.loaded / e.total) * 100;
+          progressFill.style.width = percentComplete + '%';
+          progressFill.textContent = Math.round(percentComplete) + '%';
+        }
+      });
+
+      // Handle response
+      xhr.addEventListener('load', () => {
+        if (xhr.status === 200) {
+          const response = JSON.parse(xhr.responseText);
+          showResult('success', `✅ 업로드 성공! Video ID: ${response.id}`);
+          loadVideoList();
+          resetForm();
+        } else {
+          const error = JSON.parse(xhr.responseText);
+          showResult('error', `❌ 업로드 실패: ${error.error || 'Unknown error'}`);
+        }
+        uploadBtn.disabled = false;
+      });
+
+      xhr.addEventListener('error', () => {
+        showResult('error', '❌ 네트워크 오류가 발생했습니다.');
+        uploadBtn.disabled = false;
+      });
+
+      xhr.open('POST', `${API_URL}/videos`);
+      xhr.send(formData);
+
+    } catch (error) {
+      showResult('error', `❌ 오류: ${error.message}`);
+      uploadBtn.disabled = false;
+    }
+  }
+
+  // Show result
+  function showResult(type, message) {
+    result.className = `result ${type}`;
+    result.innerHTML = message;
+    result.style.display = 'block';
+    progress.style.display = 'none';
+  }
+
+  // Reset form
+  function resetForm() {
+    selectedFile = null;
+    fileInput.value = '';
+    fileInfo.style.display = 'none';
+    progressFill.style.width = '0%';
+    progressFill.textContent = '0%';
+  }
+
+  // Load video list
+  async function loadVideoList() {
+    try {
+      const response = await fetch(`${API_URL}/videos`);
+      const data = await response.json();
+
+      if (!data.videos || data.videos.length === 0) {
+        videoList.innerHTML = '<p style="text-align: center; color: #888;">업로드된 비디오가 없습니다.</p>';
+        return;
+      }
+
+      videoList.innerHTML = '';
+
+      data.videos.forEach(video => {
+        const videoCard = createVideoCard(video);
+        videoList.appendChild(videoCard);
+      });
+
+    } catch (error) {
+      console.error('Failed to load video list:', error);
+      videoList.innerHTML = '<p style="text-align: center; color: #888;">비디오 목록을 불러올 수 없습니다.</p>';
+    }
+  }
+
+  // Create video card element
+  function createVideoCard(video) {
+    const card = document.createElement('div');
+    card.className = 'video-item';
+
+    // Get thumbnail URL
+    const thumbnailUrl = `${API_URL}/thumbnails/${video.id}/thumb_001.jpg`;
+    const placeholderUrl = `${API_URL}/thumbnails/${video.id}/poster.jpg`;
+
+    // Format duration
+    const duration = video.duration_sec ? formatDuration(video.duration_sec) : '';
+    const resolution = video.width && video.height ? `${video.width}x${video.height}` : '';
+    const fileSize = formatFileSize(video.size_bytes);
+    const uploadDate = new Date(video.created_at).toLocaleDateString('ko-KR');
+
+    card.innerHTML = `
+                <div class="video-thumbnail">
+                    <img src="${thumbnailUrl}" alt="썸네일"
+                         onerror="this.onerror=null; this.src='${placeholderUrl}'; if(this.onerror) this.parentElement.innerHTML='<div class=\\'placeholder\\'>🎬</div>';">
+                </div>
+                <div class="video-info">
+                    <div class="video-title">${escapeHtml(video.original_filename)}</div>
+                    <div class="video-meta">
+                        ${duration} • ${resolution} • ${fileSize} • ${uploadDate}
+                    </div>
+                    <span class="video-status status-${video.status}">${getStatusText(video.status)}</span>
+                    <div class="video-actions">
+                        ${video.status === 'ready' ?
+        `<a href="#" class="btn-small blue" onclick="playVideo('${video.id}', '${escapeHtml(video.original_filename)}')">재생</a>` :
+        '<span class="btn-small" style="background:#ccc;">처리중...</span>'
+    }
+                        <a href="${API_URL}/videos/${video.id}" class="btn-small" target="_blank">정보</a>
+                    </div>
+                </div>
+            `;
+
+    return card;
+  }
+
+  // Helper functions
+  function formatDuration(seconds) {
+    if (!seconds) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  function getStatusText(status) {
+    const statusMap = {
+      'queued'    : '대기중',
+      'processing': '처리중',
+      'ready'     : '완료',
+      'failed'    : '실패'
+    };
+    return statusMap[status] || status;
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Video player functions
+  function playVideo(videoId, title) {
+    const modal = document.getElementById('videoModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoSource = document.getElementById('videoSource');
+
+    modalTitle.textContent = title;
+
+    const hlsUrl = `${API_URL}/videos/${videoId}/master.m3u8`;
+
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(hlsUrl);
+      hls.attachMedia(videoPlayer);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        console.log('HLS manifest loaded, starting playback');
+      });
+
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        console.error('HLS error:', data);
+        if (data.fatal) {
+          alert('비디오를 재생할 수 없습니다. 트랜스코딩이 완료되지 않았을 수 있습니다.');
+        }
+      });
+    } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari native HLS support
+      videoSource.src = hlsUrl;
+      videoPlayer.load();
+    } else {
+      alert('이 브라우저는 HLS 재생을 지원하지 않습니다.');
+      return;
+    }
+
+    modal.style.display = 'block';
+  }
+
+  function closeModal() {
+    const modal = document.getElementById('videoModal');
+    const videoPlayer = document.getElementById('videoPlayer');
+
+    videoPlayer.pause();
+    videoPlayer.currentTime = 0;
+
+    modal.style.display = 'none';
+  }
+
+  // Close modal when clicking outside
+  window.onclick = function (event) {
+    const modal = document.getElementById('videoModal');
+    if (event.target === modal) {
+      closeModal();
+    }
+  }
+
+  // Initial load
+  loadVideoList();
+</script>
+</body>
+</html>
